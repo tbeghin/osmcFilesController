@@ -1,30 +1,51 @@
 const fs = require('fs');
+const path = require('path');
 const q = require('q');
-const testFolder = './tests/';
+const targetDir = path.resolve(__dirname, '../testFolder/');
 
-function getFilesInFolder() {
-    let defer = q.defer();
-    fs.readdir(testFolder, (err, files) => {
-        let fileTree = {
-            file: [],
-            directory: []
-        };
-        files.forEach(file => {
-            if (fs.lstatSync(`${testFolder}${file}`).isDirectory()) {
-                fileTree.directory.push(file)
+const mode = '0777'; // Authorisation sur le dossier.
+
+getFilesInFolder = (sourceDir) => {
+    sourceDir = sourceDir || '';
+    let newPath = path.join(targetDir, sourceDir);
+    return new Promise((resolve, reject) => {
+        fs.readdir(newPath, (err, files) => {
+            if (err) {
+                reject({status: 500, message: err});
             }
             else {
-                fileTree.file.push(file)
+                let result = [];
+                files.forEach(file => {
+                    if (fs.statSync(path.join(newPath, file)).isDirectory()) {
+                        result.push({name: file, isFolder: true});
+                    }
+                    else {
+                        result.push({name: file, isFolder: false});
+                    }
+                });
+                resolve({path: path.relative(targetDir, newPath), files: result});
             }
         });
+    })
+};
 
-        defer.resolve(fileTree);
+addFolder = (sourceDir, folderName) => {
+    let newPath = path.join(targetDir, sourceDir, folderName);
+    return new Promise((resolve, reject) => {
+        fs.mkdir(newPath, mode,
+            function (err) {
+                if (err) {
+                    reject({status: 500, message: err});
+                }
+                else {
+                    let relativePath = path.relative(targetDir, newPath);
+                    resolve(relativePath);
+                }
+            })
     });
+};
 
-    return defer.promise;
-}
-
-function updateNameFile(before, after) {
+updateNameFile = (before, after) => {
     let defer = q.defer();
     if (!before) {
         defer.reject({status: 412, message: 'Paramètre "before" non trouvé'});
@@ -48,9 +69,10 @@ function updateNameFile(before, after) {
         );
     }
     return defer.promise;
-}
+};
 
 module.exports = {
     getFilesInFolder: getFilesInFolder,
-    updateNameFile: updateNameFile
+    updateNameFile: updateNameFile,
+    addFolder: addFolder
 };

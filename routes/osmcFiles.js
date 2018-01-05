@@ -4,8 +4,9 @@ const osmcController = require('../src/osmcController');
 
 /* GET home page. */
 router.get('/', (req, res) => {
-    osmcController.getFilesInFolder().then(
-        files => res.json(files)
+    let folder = req.query.folderPath;
+    osmcController.getFilesInFolder(folder).then(
+        result => res.json(result)
     )
 });
 
