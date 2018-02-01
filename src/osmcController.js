@@ -1,6 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const q = require('q');
+import * as fs from 'fs';
+import * as path from 'path';
+// import {Observable} from 'rxjs/Observable';
+
 const targetDir = path.resolve(__dirname, '../testFolder/');
 
 const mode = '0777'; // Authorisation sur le dossier.
@@ -46,29 +47,29 @@ addFolder = (sourceDir, folderName) => {
 };
 
 updateNameFile = (before, after) => {
-    let defer = q.defer();
-    if (!before) {
-        defer.reject({status: 412, message: 'Paramètre "before" non trouvé'});
-    }
-    if (!after) {
-        defer.reject({status: 412, message: 'Paramètre "after" non trouvé'});
-    }
-    else {
-        console.log(`${before} -> ${after}`);
-        let pathNameBefore = `${testFolder}${before}`;
-        let pathNameAfter = `${testFolder}${after}`;
-        fs.rename(pathNameBefore, pathNameAfter,
-            function (err) {
-                if (err) {
-                    defer.reject({status: 500, message: err});
+    return new Promise((resolve, reject) => {
+        if (!before) {
+            defer.reject({status: 412, message: 'Paramètre "before" non trouvé'});
+        }
+        if (!after) {
+            defer.reject({status: 412, message: 'Paramètre "after" non trouvé'});
+        }
+        else {
+            console.log(`${before} -> ${after}`);
+            let pathNameBefore = `${testFolder}${before}`;
+            let pathNameAfter = `${testFolder}${after}`;
+            fs.rename(pathNameBefore, pathNameAfter,
+                function (err) {
+                    if (err) {
+                        reject({status: 500, message: err});
+                    }
+                    else {
+                        resolve();
+                    }
                 }
-                else {
-                    defer.resolve();
-                }
-            }
-        );
-    }
-    return defer.promise;
+            );
+        }
+    });
 };
 
 module.exports = {
