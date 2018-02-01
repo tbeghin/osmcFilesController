@@ -2,10 +2,17 @@ const express = require('express');
 const router = express.Router();
 const osmcController = require('../src/osmcController');
 
-/* GET home page. */
 router.get('/', (req, res) => {
     let folder = req.query.folderPath;
     osmcController.getFilesInFolder(folder).then(
+        result => res.json(result),
+        err => res.status(err.status).json(err.message)
+    )
+});
+
+router.post('/', (req, res) => {
+    let data = req.body;
+    osmcController.addFolder(data.source, data.folder).then(
         result => res.json(result)
     )
 });
