@@ -13,7 +13,8 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
     let data = req.body;
     osmcController.addFolder(data.source, data.folder).then(
-        result => res.json(result)
+        result => res.json(result),
+        err => res.status(err.status).json(err.message)
     )
 });
 
